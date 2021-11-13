@@ -14,25 +14,6 @@ void TS3USBCA4::init() {
 	}
 }
 
-//void TS3USBCA4::writeConfig(Config config) {
-//	Write(Registers::VIDL, config.VID & 0xFF);
-//	Write(Registers::VIDM, (config.VID >> 8) & 0xFF);
-//	Write(Registers::PIDL, config.PID & 0xFF);
-//	Write(Registers::PIDM, (config.PID >> 8) & 0xFF);
-//	Write(Registers::DIDL, config.DID & 0xFF);
-//	Write(Registers::DIDM, (config.DID >> 8) & 0xFF);
-//	Write(Registers::CFG1, config.CFG1);
-//	Write(Registers::CFG2, config.CFG2);
-//	Write(Registers::NRD, config.NRD);
-//	Write(Registers::PDS, config.PDS);
-//	Write(Registers::PDB, config.PDB);
-//	Write(Registers::MAXPS, config.MAXPS);
-//	Write(Registers::MAXPB, config.MAXPB);
-//	Write(Registers::HCMCS, config.HCMCS);
-//	Write(Registers::HCMCB, config.HCMCB);
-//	Write(Registers::PWRT, config.PWRT);
-//}
-
 void TS3USBCA4::setChannel(Channels ch, bool flipped) {
 	if (ch == Channels::DISABLED) {
 		Write(Registers::General_1, 0x00);
