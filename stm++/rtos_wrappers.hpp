@@ -5,7 +5,7 @@
 
 class base_Wrapper {
 public:
-	base_Wrapper(const char *name, void *resource) : name(name) {};
+	base_Wrapper(const char *name, void *resource) : name(name), resource(resource) {};
 	void Init();
 	const char *name;
 	void* resource;
