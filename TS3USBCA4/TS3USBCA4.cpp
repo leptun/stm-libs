@@ -30,9 +30,9 @@ void TS3USBCA4::Write(Registers reg, uint8_t data) {
 		Error_Handler();
 	if (osMutexAcquire(i2c->lock, 1000) != osOK)
 		Error_Handler();
-	HAL_I2C_RegisterCallback(i2c->hi2c, HAL_I2C_MSPINIT_CB_ID, (pI2C_CallbackTypeDef)this);
-	HAL_I2C_RegisterCallback(i2c->hi2c, HAL_I2C_MEM_TX_COMPLETE_CB_ID, _i2c_dma_complete);
-	if (HAL_I2C_Mem_Write_DMA(i2c->hi2c, i2cAddress, (uint8_t)reg, I2C_MEMADD_SIZE_8BIT, &data, 1) != HAL_OK)
+	HAL_I2C_RegisterCallback((I2C_HandleTypeDef*)i2c->resource, HAL_I2C_MSPINIT_CB_ID, (pI2C_CallbackTypeDef)this);
+	HAL_I2C_RegisterCallback((I2C_HandleTypeDef*)i2c->resource, HAL_I2C_MEM_TX_COMPLETE_CB_ID, _i2c_dma_complete);
+	if (HAL_I2C_Mem_Write_DMA((I2C_HandleTypeDef*)i2c->resource, i2cAddress, (uint8_t)reg, I2C_MEMADD_SIZE_8BIT, &data, 1) != HAL_OK)
 		Error_Handler();
 	if (osEventFlagsWait(i2c->flags, 0x01, osFlagsWaitAny, 1000) != 0x01) {
 		Error_Handler();
