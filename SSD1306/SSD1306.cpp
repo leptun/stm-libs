@@ -114,7 +114,7 @@ void SSD1306_base::Reset()
 	osDelay(100); // Wait for the screen to boot
 }
 
-bool SSD1306_base::FillBuffer(uint8_t* buf, uint32_t len)
+bool SSD1306_base::_FillBuffer(uint8_t* buf, uint32_t len)
 {
 	bool ret = true;
 	if (len <= ((screen_width * screen_height) / 8)) {
@@ -167,15 +167,15 @@ void SSD1306_base::DrawPixel(Vertex v, Color color)
     }
 }
 
-bool SSD1306_base::WriteChar(char ch, SSD1306_fonts::FontDef Font, Color fg, Color bg)
+bool SSD1306_base::WriteChar(char ch, SSD1306_fonts::FontDef Font, Color color)
 {
 	if (ch < 32 || ch > 126)
 		return true;
 
-	bool ret = WriteIcon(*(const Icon*)(Font.data + Font.offsets[ch - 32]), fg, bg);
+	bool ret = WriteIcon(*(const Icon*)(Font.data + Font.offsets[ch - 32]), color, ~color);
 	if (!ret)
 		for (uint16_t i = curpos.y; i < curpos.y + Font.FontHeight; i++)
-			DrawPixel(Vertex(curpos.x, i), bg);
+			DrawPixel(Vertex(curpos.x, i), ~color);
 	return ret;
 }
 
@@ -205,10 +205,10 @@ bool SSD1306_base::WriteIcon(const Icon &icon, Color fg, Color bg)
 	return false;
 }
 
-const char *SSD1306_base::WriteString(const char* str, SSD1306_fonts::FontDef Font, Color fg, Color bg)
+const char *SSD1306_base::WriteString(const char* str, SSD1306_fonts::FontDef Font, Color color)
 {
     while (*str) {
-        if (WriteChar(*str, Font, fg, bg))
+        if (WriteChar(*str, Font, color))
             return str;
         str++;
     }
@@ -268,43 +268,30 @@ void SSD1306_base::FillRectangle(Vertex v1, Vertex v2, Color color)
 
 void SSD1306_base::SetContrast(const uint8_t value)
 {
-    const uint8_t kSetContrastControlRegister = 0x81;
-    WriteCommand(kSetContrastControlRegister);
+    WriteCommand(0x81);
     WriteCommand(value);
 }
 
 void SSD1306_base::SetDisplayOn(const bool on)
 {
-    uint8_t value;
-    if (on) {
-        value = 0xAF;   // Display on
-        DisplayOn = 1;
-    } else {
-        value = 0xAE;   // Display off
-        DisplayOn = 0;
-    }
-    WriteCommand(value);
-}
-
-uint8_t SSD1306_base::GetDisplayOn()
-{
-    return DisplayOn;
+	DisplayOn = on;
+    WriteCommand(on ? 0xAF : 0xAE);
 }
 
 
 
-void SSD1306_i2c::init()
+void SSD1306_base::init()
 {
-	i2c->Init();
+	interface->Init();
 	_init();
 }
 
 void SSD1306_i2c::WriteCommand(uint8_t byte)
 {
-	HAL_I2C_Mem_Write(i2c->hi2c, (i2cAddress << 1), 0x00, I2C_MEMADD_SIZE_8BIT, &byte, 1, HAL_MAX_DELAY);
+	HAL_I2C_Mem_Write((I2C_HandleTypeDef*)interface->resource, (i2cAddress << 1), 0x00, I2C_MEMADD_SIZE_8BIT, &byte, 1, HAL_MAX_DELAY);
 }
 
 void SSD1306_i2c::WriteData(uint8_t* buffer, size_t buff_size)
 {
-	HAL_I2C_Mem_Write(i2c->hi2c, (i2cAddress << 1), 0x40, I2C_MEMADD_SIZE_8BIT, buffer, buff_size, HAL_MAX_DELAY);
+	HAL_I2C_Mem_Write((I2C_HandleTypeDef*)interface->resource, (i2cAddress << 1), 0x40, I2C_MEMADD_SIZE_8BIT, buffer, buff_size, HAL_MAX_DELAY);
 }

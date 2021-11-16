@@ -57,10 +57,10 @@ void TMC5160::_spi_tx_rx_dma(uint8_t *pData)
 {
 	if (osMutexAcquire(spi->lock, 1000) != osOK)
 		Error_Handler();
-	HAL_SPI_RegisterCallback(spi->hspi, HAL_SPI_MSPINIT_CB_ID, (pSPI_CallbackTypeDef)this);
-	HAL_SPI_RegisterCallback(spi->hspi, HAL_SPI_TX_RX_COMPLETE_CB_ID, _spi_dma_complete);
+	HAL_SPI_RegisterCallback((SPI_HandleTypeDef*)spi->resource, HAL_SPI_MSPINIT_CB_ID, (pSPI_CallbackTypeDef)this);
+	HAL_SPI_RegisterCallback((SPI_HandleTypeDef*)spi->resource, HAL_SPI_TX_RX_COMPLETE_CB_ID, _spi_dma_complete);
 	HAL_GPIO_WritePin(csn.port, csn.pin, GPIO_PIN_RESET);
-	if (HAL_SPI_TransmitReceive_DMA(spi->hspi, pData, pData, 5) != HAL_OK)
+	if (HAL_SPI_TransmitReceive_DMA((SPI_HandleTypeDef*)spi->resource, pData, pData, 5) != HAL_OK)
 		Error_Handler();
 	if (osEventFlagsWait(spi->flags, 0x01, osFlagsWaitAny, 1000) != 0x01) {
 		HAL_GPIO_WritePin(csn.port, csn.pin, GPIO_PIN_SET);
