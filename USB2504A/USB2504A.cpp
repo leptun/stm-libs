@@ -1,6 +1,8 @@
 #include "./USB2504A.hpp"
 #include <cstdio>
 
+#ifdef HAL_HAS_I2C
+
 int USB2504A::_USB2504A_cnt = 0;
 
 void USB2504A::init() {
@@ -67,3 +69,5 @@ void USB2504A::_i2c_dma_complete(I2C_HandleTypeDef *hi2c) {
 	USB2504A* aista = (USB2504A*)((void*)(hi2c->MspInitCallback));
 	osEventFlagsSet(aista->i2c->flags, 0x01);
 }
+
+#endif

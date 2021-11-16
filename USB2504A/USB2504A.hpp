@@ -3,6 +3,8 @@
 #include "stm++/IO.hpp"
 #include "stm++/rtos_wrappers.hpp"
 
+#ifdef HAL_HAS_I2C
+
 class USB2504A {
 public:
 	struct Config {
@@ -60,3 +62,5 @@ private:
 
 	static void _i2c_dma_complete(I2C_HandleTypeDef *hi2c);
 };
+
+#endif

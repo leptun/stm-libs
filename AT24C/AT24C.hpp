@@ -2,6 +2,8 @@
 
 #include "stm++/rtos_wrappers.hpp"
 
+#ifdef HAL_HAS_I2C
+
 class AT24C {
 public:
 	AT24C(uint8_t address, uint16_t size, I2C_Wrapper *i2c) : i2cAddress(address), memSize(size), i2c(i2c) {};
@@ -31,3 +33,5 @@ private:
 
 	static void _i2c_dma_complete(I2C_HandleTypeDef *hi2c);
 };
+
+#endif

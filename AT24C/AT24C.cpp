@@ -2,6 +2,8 @@
 #include <cstdio>
 #include <algorithm>
 
+#ifdef HAL_HAS_I2C
+
 int AT24C::_AT24C_cnt = 0;
 
 void AT24C::init()
@@ -65,3 +67,5 @@ void AT24C::_i2c_dma_complete(I2C_HandleTypeDef *hi2c)
 	AT24C* aista = (AT24C*)((void*)(hi2c->MspInitCallback));
 	osEventFlagsSet(aista->i2c->flags, 0x01);
 }
+
+#endif

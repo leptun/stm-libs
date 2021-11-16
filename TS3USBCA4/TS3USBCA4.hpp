@@ -3,6 +3,8 @@
 #include "stm++/IO.hpp"
 #include "stm++/rtos_wrappers.hpp"
 
+#ifdef HAL_HAS_I2C
+
 class TS3USBCA4 {
 public:
 	enum class Channels : uint8_t {
@@ -35,3 +37,5 @@ private:
 
 	static void _i2c_dma_complete(I2C_HandleTypeDef *hi2c);
 };
+
+#endif

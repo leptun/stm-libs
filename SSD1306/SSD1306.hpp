@@ -72,6 +72,7 @@ private:
 	void _init();
 };
 
+#ifdef HAL_HAS_I2C
 class SSD1306_i2c : public SSD1306_base {
 public:
 	SSD1306_i2c(uint8_t screen_width, uint8_t screen_height, I2C_Wrapper *i2c, uint8_t address, IO RES = {0}) :
@@ -83,6 +84,7 @@ public:
 private:
 	uint8_t i2cAddress;
 };
+#endif
 
 inline SSD1306_base::Color operator~(SSD1306_base::Color color) {
 	return static_cast<SSD1306_base::Color>(-static_cast<int8_t>(color));

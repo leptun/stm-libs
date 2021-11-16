@@ -3,6 +3,7 @@
 #include "stm++/IO.hpp"
 #include "stm++/rtos_wrappers.hpp"
 
+#ifdef HAL_HAS_SPI
 
 class TMC5160 {
 public:
@@ -217,3 +218,5 @@ private:
 	uint8_t _calc_globalscaler(float current);
 	uint8_t _calc_current_bits(float current, unsigned int globalscaler);
 };
+
+#endif

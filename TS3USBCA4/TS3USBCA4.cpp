@@ -1,6 +1,8 @@
 #include "./TS3USBCA4.hpp"
 #include <cstdio>
 
+#ifdef HAL_HAS_I2C
+
 int TS3USBCA4::_TS3USBCA4_cnt = 0;
 
 void TS3USBCA4::init() {
@@ -45,3 +47,5 @@ void TS3USBCA4::_i2c_dma_complete(I2C_HandleTypeDef *hi2c) {
 	TS3USBCA4* aista = (TS3USBCA4*)((void*)(hi2c->MspInitCallback));
 	osEventFlagsSet(aista->i2c->flags, 0x01);
 }
+
+#endif

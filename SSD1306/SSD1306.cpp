@@ -286,6 +286,7 @@ void SSD1306_base::init()
 	_init();
 }
 
+#ifdef HAL_HAS_I2C
 void SSD1306_i2c::WriteCommand(uint8_t byte)
 {
 	HAL_I2C_Mem_Write((I2C_HandleTypeDef*)interface->resource, (i2cAddress << 1), 0x00, I2C_MEMADD_SIZE_8BIT, &byte, 1, HAL_MAX_DELAY);
@@ -295,3 +296,4 @@ void SSD1306_i2c::WriteData(uint8_t* buffer, size_t buff_size)
 {
 	HAL_I2C_Mem_Write((I2C_HandleTypeDef*)interface->resource, (i2cAddress << 1), 0x40, I2C_MEMADD_SIZE_8BIT, buffer, buff_size, HAL_MAX_DELAY);
 }
+#endif

@@ -10,6 +10,6 @@
 
 #if\
 	defined(__STM32F1xx_HAL_I2C_H) ||\
-	defined(__STM32G4xx_HAL_I2C_H)
+	defined(STM32G4xx_HAL_I2C_H)
 #define HAL_HAS_I2C
 #endif

@@ -3,6 +3,8 @@
 #include <math.h>
 #include <algorithm>
 
+#ifdef HAL_HAS_SPI
+
 int TMC5160::_TMC5160_cnt = 0;
 
 HAL_StatusTypeDef TMC5160::init()
@@ -322,3 +324,5 @@ TMC5160::Endstops::SwitchStatus TMC5160::Endstops::getSwitchStatus()
 	};
 	return status;
 }
+
+#endif
