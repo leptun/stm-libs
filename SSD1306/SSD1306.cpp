@@ -88,13 +88,13 @@ void SSD1306_base::_init()
 	SetDisplayOn(true); //--turn on SSD1306 panel
 
 	// Clear screen
-	Fill(Color::Black);
+	Fill(SSD1306_util::Color::Black);
 
 	// Flush buffer to screen
 	UpdateScreen();
 
 	// Set default values for screen object
-	curpos = Vertex(0, 0);
+	curpos = SSD1306_util::Vertex(0, 0);
 
 	Initialized = 1;
 }
@@ -124,10 +124,10 @@ bool SSD1306_base::_FillBuffer(uint8_t* buf, uint32_t len)
 	return ret;
 }
 
-void SSD1306_base::Fill(Color color)
+void SSD1306_base::Fill(SSD1306_util::Color color)
 {
     for(uint32_t i = 0; i < ((screen_width * screen_height) / 8); i++) {
-        Buffer[i] = (color == Color::White) ? 0xFF : 0x00;
+        Buffer[i] = (color == SSD1306_util::Color::White) ? 0xFF : 0x00;
     }
 }
 
@@ -147,7 +147,7 @@ void SSD1306_base::UpdateScreen(void)
     }
 }
 
-void SSD1306_base::DrawPixel(Vertex v, Color color)
+void SSD1306_base::DrawPixel(SSD1306_util::Vertex v, SSD1306_util::Color color)
 {
     if(v.x >= screen_width || v.y >= screen_height) {
         // Don't write outside the buffer
@@ -156,10 +156,10 @@ void SSD1306_base::DrawPixel(Vertex v, Color color)
 
     // Draw in the right color
     switch (color) {
-    case Color::White:
+    case SSD1306_util::Color::White:
     	Buffer[v.x + (v.y / 8) * screen_width] |= 1 << (v.y % 8);
     	break;
-    case Color::Black:
+    case SSD1306_util::Color::Black:
     	Buffer[v.x + (v.y / 8) * screen_width] &= ~(1 << (v.y % 8));
     	break;
     default:
@@ -167,19 +167,23 @@ void SSD1306_base::DrawPixel(Vertex v, Color color)
     }
 }
 
-bool SSD1306_base::WriteChar(char ch, SSD1306_fonts::FontDef Font, Color color)
+bool SSD1306_base::WriteChar(char ch, SSD1306_fonts::FontDef Font, SSD1306_util::Color color)
 {
 	if (ch < 32 || ch > 126)
 		return true;
 
-	bool ret = WriteIcon(*(const Icon*)(Font.data + Font.offsets[ch - 32]), color, ~color);
-	if (!ret)
-		for (uint16_t i = curpos.y; i < curpos.y + Font.FontHeight; i++)
-			DrawPixel(Vertex(curpos.x, i), ~color);
+	bool ret = WriteIcon(*(const SSD1306_util::Icon*)(Font.data + Font.offsets[ch - 32]), color, ~color);
+	if (!ret) {
+		for (uint16_t i = curpos.y; i < curpos.y + Font.FontHeight; i++) {
+			DrawPixel(SSD1306_util::Vertex(curpos.x, i), ~color);
+		}
+	}
+	curpos.x++;
+
 	return ret;
 }
 
-bool SSD1306_base::WriteIcon(const Icon &icon, Color fg, Color bg)
+bool SSD1306_base::WriteIcon(const SSD1306_util::Icon &icon, SSD1306_util::Color fg, SSD1306_util::Color bg)
 {
 	const uint8_t *basePtr = icon.data;
 
@@ -195,7 +199,7 @@ bool SSD1306_base::WriteIcon(const Icon &icon, Color fg, Color bg)
 				if (k == 1 << pixelsUsed) {
 					break;
 				}
-					DrawPixel(Vertex(curpos.x + i, curpos.y + (icon.Height - j)), (c & k) ? fg : bg);
+					DrawPixel(SSD1306_util::Vertex(curpos.x + i, curpos.y + (icon.Height - j)), (c & k) ? fg : bg);
 				j--;
 			}
 		}
@@ -205,7 +209,7 @@ bool SSD1306_base::WriteIcon(const Icon &icon, Color fg, Color bg)
 	return false;
 }
 
-const char *SSD1306_base::WriteString(const char* str, SSD1306_fonts::FontDef Font, Color color)
+const char *SSD1306_base::WriteString(const char* str, SSD1306_fonts::FontDef Font, SSD1306_util::Color color)
 {
     while (*str) {
         if (WriteChar(*str, Font, color))
@@ -215,12 +219,12 @@ const char *SSD1306_base::WriteString(const char* str, SSD1306_fonts::FontDef Fo
     return NULL;
 }
 
-void SSD1306_base::SetCursor(Vertex v)
+void SSD1306_base::SetCursor(SSD1306_util::Vertex v)
 {
 	curpos = v;
 }
 
-void SSD1306_base::Line(Vertex v1, Vertex v2, Color color)
+void SSD1306_base::Line(SSD1306_util::Vertex v1, SSD1306_util::Vertex v2, SSD1306_util::Color color)
 {
 	int32_t deltaX = std::abs(v2.x - v1.x);
 	int32_t deltaY = std::abs(v2.y - v1.y);
@@ -249,21 +253,21 @@ void SSD1306_base::Line(Vertex v1, Vertex v2, Color color)
 	}
 }
 
-void SSD1306_base::DrawRectangle(Vertex v1, Vertex v2, Color color)
+void SSD1306_base::DrawRectangle(SSD1306_util::Vertex v1, SSD1306_util::Vertex v2, SSD1306_util::Color color)
 {
-	Line(Vertex(v1.x, v1.y), Vertex(v2.x, v1.y),color);
-	Line(Vertex(v2.x, v1.y), Vertex(v2.x, v2.y),color);
-	Line(Vertex(v2.x, v2.y), Vertex(v1.x, v2.y),color);
-	Line(Vertex(v1.x, v2.y), Vertex(v1.x, v1.y),color);
+	Line(SSD1306_util::Vertex(v1.x, v1.y), SSD1306_util::Vertex(v2.x, v1.y),color);
+	Line(SSD1306_util::Vertex(v2.x, v1.y), SSD1306_util::Vertex(v2.x, v2.y),color);
+	Line(SSD1306_util::Vertex(v2.x, v2.y), SSD1306_util::Vertex(v1.x, v2.y),color);
+	Line(SSD1306_util::Vertex(v1.x, v2.y), SSD1306_util::Vertex(v1.x, v1.y),color);
 }
 
-void SSD1306_base::FillRectangle(Vertex v1, Vertex v2, Color color)
+void SSD1306_base::FillRectangle(SSD1306_util::Vertex v1, SSD1306_util::Vertex v2, SSD1306_util::Color color)
 {
 	if (v1.x > v2.x || v1.y > v2.y)
 		return;
 	for (uint8_t i = v1.x; i <= v2.x; i++)
 		for (uint8_t j = v1.y; j <= v2.y; j++)
-			DrawPixel(Vertex(i, j), color);
+			DrawPixel(SSD1306_util::Vertex(i, j), color);
 }
 
 void SSD1306_base::SetContrast(const uint8_t value)
