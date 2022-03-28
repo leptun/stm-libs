@@ -3,7 +3,7 @@
 #include <math.h>
 #include <algorithm>
 
-#ifdef HAL_HAS_SPI
+#if defined(HAL_SPI_MODULE_ENABLED) && USE_HAL_SPI_REGISTER_CALLBACKS
 
 int TMC5160::_TMC5160_cnt = 0;
 
@@ -325,4 +325,4 @@ TMC5160::Endstops::SwitchStatus TMC5160::Endstops::getSwitchStatus()
 	return status;
 }
 
-#endif
+#endif //defined(HAL_SPI_MODULE_ENABLED) && USE_HAL_SPI_REGISTER_CALLBACKS

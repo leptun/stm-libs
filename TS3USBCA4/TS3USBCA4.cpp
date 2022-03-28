@@ -1,7 +1,7 @@
 #include "./TS3USBCA4.hpp"
 #include <cstdio>
 
-#ifdef HAL_HAS_I2C
+#if defined(HAL_I2C_MODULE_ENABLED) && USE_HAL_I2C_REGISTER_CALLBACKS
 
 int TS3USBCA4::_TS3USBCA4_cnt = 0;
 
@@ -48,4 +48,4 @@ void TS3USBCA4::_i2c_dma_complete(I2C_HandleTypeDef *hi2c) {
 	osEventFlagsSet(aista->i2c->flags, 0x01);
 }
 
-#endif
+#endif //defined(HAL_I2C_MODULE_ENABLED) && USE_HAL_I2C_REGISTER_CALLBACKS

@@ -1,7 +1,7 @@
 #include "./USB2504A.hpp"
 #include <cstdio>
 
-#ifdef HAL_HAS_I2C
+#if defined(HAL_I2C_MODULE_ENABLED) && USE_HAL_I2C_REGISTER_CALLBACKS
 
 int USB2504A::_USB2504A_cnt = 0;
 
@@ -70,4 +70,4 @@ void USB2504A::_i2c_dma_complete(I2C_HandleTypeDef *hi2c) {
 	osEventFlagsSet(aista->i2c->flags, 0x01);
 }
 
-#endif
+#endif //defined(HAL_I2C_MODULE_ENABLED) && USE_HAL_I2C_REGISTER_CALLBACKS

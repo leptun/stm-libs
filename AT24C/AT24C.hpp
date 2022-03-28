@@ -2,7 +2,7 @@
 
 #include "stm++/rtos_wrappers.hpp"
 
-#ifdef HAL_HAS_I2C
+#if defined(HAL_I2C_MODULE_ENABLED) && USE_HAL_I2C_REGISTER_CALLBACKS
 
 class AT24C {
 public:
@@ -34,4 +34,4 @@ private:
 	static void _i2c_dma_complete(I2C_HandleTypeDef *hi2c);
 };
 
-#endif
+#endif //defined(HAL_I2C_MODULE_ENABLED) && USE_HAL_I2C_REGISTER_CALLBACKS

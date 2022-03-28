@@ -3,7 +3,7 @@
 #include "stm++/IO.hpp"
 #include "stm++/rtos_wrappers.hpp"
 
-#ifdef HAL_HAS_SPI
+#if defined(HAL_SPI_MODULE_ENABLED) && USE_HAL_SPI_REGISTER_CALLBACKS
 
 class TMC5160 {
 public:
@@ -219,4 +219,4 @@ private:
 	uint8_t _calc_current_bits(float current, unsigned int globalscaler);
 };
 
-#endif
+#endif //defined(HAL_SPI_MODULE_ENABLED) && USE_HAL_SPI_REGISTER_CALLBACKS

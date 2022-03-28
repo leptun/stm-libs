@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <algorithm>
 
-#ifdef HAL_HAS_I2C
+#if defined(HAL_I2C_MODULE_ENABLED) && USE_HAL_I2C_REGISTER_CALLBACKS
 
 int AT24C::_AT24C_cnt = 0;
 
@@ -68,4 +68,4 @@ void AT24C::_i2c_dma_complete(I2C_HandleTypeDef *hi2c)
 	osEventFlagsSet(aista->i2c->flags, 0x01);
 }
 
-#endif
+#endif //defined(HAL_I2C_MODULE_ENABLED) && USE_HAL_I2C_REGISTER_CALLBACKS
