@@ -1,7 +1,7 @@
 #pragma once
 #include "main.h"
 
-#if defined(HAL_I2C_MODULE_ENABLED)
+#if defined(HAL_I2C_MODULE_ENABLED) && defined(I2C_OA2_MASK07)
 
 class I2C_slave_base {
 public:
@@ -119,4 +119,4 @@ private:
 	}
 };
 
-#endif //#defined(HAL_I2C_MODULE_ENABLED)
+#endif //#defined(HAL_I2C_MODULE_ENABLED) && defined(I2C_OA2_MASK07)

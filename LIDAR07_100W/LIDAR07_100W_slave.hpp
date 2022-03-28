@@ -3,7 +3,7 @@
 #include <string.h>
 #include "circle_buffer.hpp"
 
-#if defined(HAL_I2C_MODULE_ENABLED)
+#if defined(HAL_I2C_MODULE_ENABLED) && defined(I2C_OA2_MASK07)
 
 class LIDAR07_100W_slave : public I2C_slave_base {
 public:
@@ -229,4 +229,4 @@ private:
 	}
 };
 
-#endif //#defined(HAL_I2C_MODULE_ENABLED)
+#endif //#defined(HAL_I2C_MODULE_ENABLED) && defined(I2C_OA2_MASK07)

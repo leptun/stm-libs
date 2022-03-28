@@ -1,7 +1,7 @@
 #pragma once
 #include "main.h"
 
-#if defined(HAL_I2C_MODULE_ENABLED)
+#if defined(HAL_I2C_MODULE_ENABLED) && defined(I2C_OA2_MASK07)
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,4 +14,4 @@ extern void i2c_slave_manager_error_irq(I2C_HandleTypeDef *hi2c);
 }
 #endif
 
-#endif //#defined(HAL_I2C_MODULE_ENABLED)
+#endif //#defined(HAL_I2C_MODULE_ENABLED) && defined(I2C_OA2_MASK07)
