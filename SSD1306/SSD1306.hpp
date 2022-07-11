@@ -28,8 +28,8 @@ public:
 	    return DisplayOn;
 	}
 
-	virtual void WriteCommand(uint8_t byte) {};
-	virtual void WriteData(uint8_t* buffer, size_t buff_size) {};
+	virtual void WriteCommand(uint8_t byte) = 0;
+	virtual void WriteData(uint8_t* buffer, size_t buff_size) = 0;
 
 	SSD1306_util::BoundingBox box;
 	SSD1306_util::Vertex curpos = SSD1306_util::Vertex(0, 0);
