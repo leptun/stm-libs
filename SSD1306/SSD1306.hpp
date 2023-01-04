@@ -30,6 +30,7 @@ public:
 
 	virtual void WriteCommand(uint8_t byte) = 0;
 	virtual void WriteData(uint8_t* buffer, size_t buff_size) = 0;
+	virtual bool CheckDisplay() = 0;
 
 	SSD1306_util::BoundingBox box;
 	SSD1306_util::Vertex curpos = SSD1306_util::Vertex(0, 0);
@@ -42,9 +43,11 @@ protected:
 	IO CS;
 	IO DC;
 
+protected:
+	bool Initialized;
+
 private:
 	uint8_t *Buffer = nullptr;
-    bool Initialized;
     bool DisplayOn;
 
 	bool _FillBuffer(uint8_t* buf, uint32_t len);
@@ -59,6 +62,7 @@ public:
 		i2cAddress(address) {};
 	void WriteCommand(uint8_t byte) override;
 	void WriteData(uint8_t* buffer, size_t buff_size) override;
+	bool CheckDisplay() override;
 
 private:
 	uint8_t i2cAddress;

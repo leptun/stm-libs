@@ -4,10 +4,18 @@
 
 void SSD1306_base::_init()
 {
-	Buffer = (uint8_t*)pvPortMalloc((screen_width * screen_height) / 8);
+	if (!Buffer) {
+		Buffer = (uint8_t*)pvPortMalloc((screen_width * screen_height) / 8);
+	}
+	Initialized = 1;
 
 	// Reset OLED
 	Reset();
+
+	if (!CheckDisplay()) {
+		Initialized = 0;
+		return;
+	}
 
 	// Init OLED
 	SetDisplayOn(false); //display off
@@ -90,13 +98,11 @@ void SSD1306_base::_init()
 	// Clear screen
 	Fill(SSD1306_util::Color::Black);
 
-	// Flush buffer to screen
-	UpdateScreen();
+//	// Flush buffer to screen
+//	UpdateScreen();
 
 	// Set default values for screen object
 	curpos = SSD1306_util::Vertex(0, 0);
-
-	Initialized = 1;
 }
 
 void SSD1306_base::Reset()
@@ -139,6 +145,10 @@ void SSD1306_base::UpdateScreen(void)
     //  * 32px   ==  4 pages
     //  * 64px   ==  8 pages
     //  * 128px  ==  16 pages
+	if (!Initialized) {
+		_init();
+		return;
+	}
     for(uint8_t i = 0; i < screen_height/8; i++) {
         WriteCommand(0xB0 + i); // Set the current RAM page address.
         WriteCommand(0x00);
@@ -293,11 +303,19 @@ void SSD1306_base::init()
 #if defined(HAL_I2C_MODULE_ENABLED) && USE_HAL_I2C_REGISTER_CALLBACKS
 void SSD1306_i2c::WriteCommand(uint8_t byte)
 {
-	HAL_I2C_Mem_Write((I2C_HandleTypeDef*)interface->resource, (i2cAddress << 1), 0x00, I2C_MEMADD_SIZE_8BIT, &byte, 1, HAL_MAX_DELAY);
+	if (HAL_I2C_Mem_Write((I2C_HandleTypeDef*)interface->resource, (i2cAddress << 1), 0x00, I2C_MEMADD_SIZE_8BIT, &byte, 1, 25)) {
+		Initialized = 0;
+	}
 }
 
 void SSD1306_i2c::WriteData(uint8_t* buffer, size_t buff_size)
 {
-	HAL_I2C_Mem_Write((I2C_HandleTypeDef*)interface->resource, (i2cAddress << 1), 0x40, I2C_MEMADD_SIZE_8BIT, buffer, buff_size, HAL_MAX_DELAY);
+	if (HAL_I2C_Mem_Write((I2C_HandleTypeDef*)interface->resource, (i2cAddress << 1), 0x40, I2C_MEMADD_SIZE_8BIT, buffer, buff_size, 25)) {
+		Initialized = 0;
+	}
+}
+bool SSD1306_i2c::CheckDisplay()
+{
+	return HAL_I2C_IsDeviceReady((I2C_HandleTypeDef*)interface->resource, (i2cAddress << 1), 1, 25) == HAL_OK;
 }
 #endif //defined(HAL_I2C_MODULE_ENABLED) && USE_HAL_I2C_REGISTER_CALLBACKS
