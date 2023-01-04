@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <math.h>
 #include <algorithm>
+#include <stm++/EXTI_ex.hpp>
 
 #if defined(HAL_SPI_MODULE_ENABLED) && USE_HAL_SPI_REGISTER_CALLBACKS
 
@@ -19,11 +20,36 @@ HAL_StatusTypeDef TMC5160::init()
 		lock = osMutexNew(&attrM);
 	}
 
+	{
+		const osThreadAttr_t TMC_attributes = {
+			.name = name,
+			.stack_size = 128 * 4,
+			.priority = (osPriority_t) osPriorityNormal,
+		};
+		TMC5160_TaskHandle = osThreadNew(TMC5160::threadWrapper, this, &TMC_attributes);
+	}
+	{
+		const osEventFlagsAttr_t TMC_attributes = {
+			.name = name,
+		};
+		evFlags = osEventFlagsNew(&TMC_attributes);
+	}
+
 	uint32_t IOIN = readRegister(Registers::IOIN);
 	if (((IOIN >> 24) & 0xFF) != 0x30 || (IOIN & (1 << 6))) // check tmc version
 		return HAL_ERROR;
 	if (spi_status & 0x01) //clear reset flag
 		writeRegister(Registers::GSTAT, 0x01);
+
+	const ObjectCallback cb0 = {(void (*)(void*))diag0_callback, this};
+	const ObjectCallback cb1 = {(void (*)(void*))diag1_callback, this};
+
+	EXTI_ex_RegisterCallback(diag0, cb0);
+	EXTI_ex_RegisterCallback(diag1, cb1);
+
+	motion.setMode(Motion::RampModes::hodl);
+	writeRegister(Registers::RAMP_STAT, 0xCC);
+
 	ready = true;
 	return HAL_OK;
 }
@@ -81,6 +107,51 @@ void TMC5160::_spi_dma_complete(SPI_HandleTypeDef *hspi)
 void TMC5160::_handleStatus(uint8_t status)
 {
 	spi_status = status;
+}
+
+void TMC5160::diag0_callback(TMC5160 *tmc) {
+	osThreadFlagsSet(tmc->TMC5160_TaskHandle, (1UL << (uint32_t)Events::DIAG0));
+}
+
+void TMC5160::diag1_callback(TMC5160 *tmc) {
+	osThreadFlagsSet(tmc->TMC5160_TaskHandle, (1UL << (uint32_t)Events::DIAG1));
+}
+
+void TMC5160::threadWrapper(void *argument) {
+	((TMC5160*)argument)->thread();
+}
+
+void TMC5160::thread() {
+	for (;;) {
+		uint32_t flags = osThreadFlagsWait((1 << (uint32_t)Events::DIAG0) | (1 << (uint32_t)Events::DIAG1), osFlagsWaitAny, osWaitForever);
+
+		if (flags & (1 << (uint32_t)Events::DIAG0)) {
+			uint32_t ramp_stat = readRegister(Registers::RAMP_STAT);
+//			uint32_t enc_status = readRegister(Registers::ENC_STATUS);
+			if (ramp_stat & (1 << 7)) {
+				writeRegister(Registers::RAMP_STAT, (1 << 7));
+				osEventFlagsSet(evFlags, (1 << (uint32_t)Events::event_pos_reached));
+			}
+			if (ramp_stat & (1 << 6)) {
+				//...
+				writeRegister(Registers::RAMP_STAT, (1 << 6));
+				osEventFlagsSet(evFlags, (1 << (uint32_t)Events::event_stop_sg));
+			}
+			if (ramp_stat & (1 << 5)) {
+				motion.setMode(Motion::RampModes::hodl);
+				osEventFlagsSet(evFlags, (1 << (uint32_t)Events::event_stop_r));
+			}
+			if (ramp_stat & (1 << 4)) {
+				motion.setMode(Motion::RampModes::hodl);
+				osEventFlagsSet(evFlags, (1 << (uint32_t)Events::event_stop_l));
+			}
+			asm("nop");
+			//ENC_STATUS
+		}
+		if (flags & (1 << (uint32_t)Events::DIAG1)) {
+			osEventFlagsSet(evFlags, (1 << (uint32_t)Events::PositionCompare));
+		}
+	}
 }
 
 void TMC5160::setSpreadCycleConfig(SpreadCycleConfig config)
@@ -252,6 +323,11 @@ bool TMC5160::Motion::targetVelocityReached()
 	return (_tmc.readRegister(Registers::RAMP_STAT) & (1 << 8));
 }
 
+bool TMC5160::Motion::vzero()
+{
+	return (_tmc.readRegister(Registers::RAMP_STAT) & (1 << 10));
+}
+
 void TMC5160::Motion::waitForTargetPosition()
 {
 	while (!targetPositionReached())
@@ -264,11 +340,17 @@ void TMC5160::Motion::waitForTargetVelocity()
 		osDelay(1);
 }
 
+void TMC5160::Motion::waitForVzero()
+{
+	while (!vzero())
+		osDelay(1);
+}
+
 void TMC5160::Motion::softStop()
 {
 	setVelocity(0);
 	setMode(RampModes::velocity_positive);
-	waitForTargetVelocity();
+	waitForVzero();
 	setMode(RampModes::hodl);
 }
 
@@ -304,6 +386,16 @@ void TMC5160::Endstops::setLatchConfig(LatchConfig config)
 	_sw_mode |= config.latch_r_active << 7;
 	_sw_mode |= config.latch_r_inactive << 8;
 	_pushConfig();
+}
+
+TMC5160::Endstops::LatchConfig TMC5160::Endstops::getLatchConfig() {
+	LatchConfig config = {
+		(bool)(_sw_mode & (1 << 5)),
+		(bool)(_sw_mode & (1 << 6)),
+		(bool)(_sw_mode & (1 << 7)),
+		(bool)(_sw_mode & (1 << 8)),
+	};
+	return config;
 }
 
 void TMC5160::Endstops::clearLatchEvents()

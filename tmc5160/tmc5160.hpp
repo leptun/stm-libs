@@ -99,7 +99,19 @@ public:
 		PWMCONF = 0x70,
 	};
 
-	TMC5160(IO csn, IO enn, SPI_Wrapper *spi) : motion(*this), endstops(*this), csn(csn), enn(enn), spi(spi) {};
+	enum class Events : uint32_t {
+		DIAG0,
+		DIAG1,
+		event_pos_reached,
+		event_stop_sg,
+		event_stop_r,
+		event_stop_l,
+		deviation_warn,
+		N_event,
+		PositionCompare,
+	};
+
+	TMC5160(IO csn, IO enn, IO diag0, IO diag1, SPI_Wrapper *spi) : motion(*this), endstops(*this), csn(csn), enn(enn), diag0(diag0), diag1(diag1), spi(spi) {};
 	HAL_StatusTypeDef init();
 	bool Ready() { return ready; };
 
@@ -147,8 +159,10 @@ public:
 		int32_t getLatchedPosition();
 		bool targetPositionReached();
 		bool targetVelocityReached();
+		bool vzero();
 		void waitForTargetPosition();
 		void waitForTargetVelocity();
+		void waitForVzero();
 		void softStop();
 		inline uint32_t getAbsoluteVMAX() {return _vmax;};
 	private:
@@ -191,6 +205,7 @@ public:
 		void setSoftstop(bool en_softstop);
 		void setLimitingConfig(LimitingConfig config);
 		void setLatchConfig(LatchConfig config);
+		LatchConfig getLatchConfig();
 		void clearLatchEvents();
 		SwitchStatus getSwitchStatus();
 	private:
@@ -199,11 +214,15 @@ public:
 		inline void _pushConfig() {_tmc.writeRegister(Registers::SW_MODE, _sw_mode);};
 	} endstops;
 
+	osEventFlagsId_t evFlags;
+
 private:
 	static constexpr float VREF = 0.325;
 	static constexpr float SENSE_RESISTOR = 0.075;
 	IO csn;
 	IO enn;
+	IO diag0;
+	IO diag1;
 	SPI_Wrapper *spi;
 	osMutexId_t lock;
 	static int _TMC5160_cnt;
@@ -211,9 +230,16 @@ private:
 	uint8_t spi_status = 0;
 	bool ready = false;
 
+	osThreadId_t TMC5160_TaskHandle;
+	static void threadWrapper(void *argument);
+	void thread();
+
 	void _spi_tx_rx_dma(uint8_t *pData);
 	static void _spi_dma_complete(SPI_HandleTypeDef *hspi);
 	void _handleStatus(uint8_t status);
+
+	static void diag0_callback(TMC5160 *tmc);
+	static void diag1_callback(TMC5160 *tmc);
 
 	uint8_t _calc_globalscaler(float current);
 	uint8_t _calc_current_bits(float current, unsigned int globalscaler);
