@@ -156,6 +156,7 @@ public:
 		void setTargetPosition(int32_t pos);
 		void setTargetPositionRelative(int32_t pos);
 		void resetTargetToActual();
+		int32_t getCurrentPosition();
 		int32_t getLatchedPosition();
 		bool targetPositionReached();
 		bool targetVelocityReached();

@@ -308,6 +308,11 @@ void TMC5160::Motion::resetTargetToActual()
 	setTargetPosition(_tmc.readRegister(Registers::XACTUAL));
 }
 
+int32_t TMC5160::Motion::getCurrentPosition()
+{
+	return _tmc.readRegister(Registers::XACTUAL);
+}
+
 int32_t TMC5160::Motion::getLatchedPosition()
 {
 	return _tmc.readRegister(Registers::XLATCH);
